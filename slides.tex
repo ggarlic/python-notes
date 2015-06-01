@@ -1,0 +1,279 @@
+\documentclass[xcolor=svgnames]{beamer} 
+%\usecolortheme[named=PowderBlue]{structure} %structure
+\usecolortheme{beaver} %structure
+\useoutertheme{infolines} 
+%\usetheme[height=7mm]{CambridgeUS} %Rochester
+\usetheme{CambridgeUS} %Rochester
+\setbeamertemplate{items}[ball] 
+\setbeamertemplate{blocks}[rounded][shadow=true] 
+\setbeamertemplate{navigation symbols}{} 
+
+\usepackage{xeCJK}
+\setCJKmainfont{Hiragino Sans GB}
+\usepackage{tikz}
+\usepackage{listings}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage{color}
+ 
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+ 
+\lstset{ %
+  %language=C,                % the language of the code
+  basicstyle=\footnotesize,           % the size of the fonts that are used for the code
+  %numbers=left,                   % where to put the line-numbers
+  %numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+  %stepnumber=2,                   % the step between two line-numbers. If it's 1, each line 
+                                  % will be numbered
+  numbersep=5pt,                  % how far the line-numbers are from the code
+  backgroundcolor=\color{white},      % choose the background color. You must add \usepackage{color}
+  showspaces=false,               % show spaces adding particular underscores
+  showstringspaces=false,         % underline spaces within strings
+  showtabs=false,                 % show tabs within strings adding particular underscores
+  frame=single,                   % adds a frame around the code
+  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+  tabsize=4,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+  title=\lstname,                   % show the filename of files included with \lstinputlisting;
+                                  % also try caption instead of title
+  keywordstyle=\color{blue},          % keyword style
+  commentstyle=\color{dkgreen},       % comment style
+  stringstyle=\color{mauve},         % string literal style
+  escapeinside={\%*}{*)},            % if you want to add LaTeX within your code
+  morekeywords={*,...}               % if you want to add more keywords to the set
+}
+
+\hypersetup{ pdfpagemode={FullScreen}}
+
+\title{PYTHON NOTES}
+\subtitle{with internals}
+\author{Yang Bo}
+\institute[Admaster]{
+    RDBJ \\
+    Admaster
+}
+\date{2015.5.25}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+%----------- slide -------------%
+\begin{frame}{Outline of the talk} 
+ 
+\begin{itemize} 
+  \item Python Object
+  \pause
+  \item Built-in Types 
+  \pause 
+  \item Technical lemmata 
+  \pause 
+  \item Proof of the main theorem 
+  \pause 
+  \item Conclusions 
+\end{itemize} 
+ 
+\end{frame} 
+
+%------------ python object /pyobject--------%
+\begin{frame}[fragile]{Python Object}
+    \begin{lstlisting}[language=C]{object.h}
+#define PyObject_HEAD                   \
+    _PyObject_HEAD_EXTRA                \
+    Py_ssize_t ob_refcnt;               \
+    struct _typeobject *ob_type;
+
+typedef struct _object {
+    PyObject_HEAD
+} PyObject;
+
+#define PyObject_VAR_HEAD               \
+    PyObject_HEAD                       \
+    Py_ssize_t ob_size; /* Number of items in variable part */
+
+typedef struct {
+    PyObject_VAR_HEAD
+} PyVarObject;
+\end{lstlisting} 
+\end{frame}
+
+%----------- python object/ pyobject -------------%
+\begin{frame}{Python Object}
+  \begin{itemize}
+    \item Foundations of Everything(interally)
+    \item Not change size once created
+    \item PyObject / PyVarObject
+    \item Reference Count
+    \item Type Info
+    \item Size Info
+    \item Layout
+  \end{itemize}
+\end{frame}
+
+
+%------------ python object --------%
+\begin{frame}[fragile]{Python Object}
+    \begin{lstlisting}[language=C]{object.h}
+#define _Py_Dealloc(op) (                               \
+    _Py_INC_TPFREES(op) _Py_COUNT_ALLOCS_COMMA          \
+    (*Py_TYPE(op)->tp_dealloc)((PyObject *)(op)))
+#endif /* !Py_TRACE_REFS */
+
+#define Py_INCREF(op) (                         \
+    _Py_INC_REFTOTAL  _Py_REF_DEBUG_COMMA       \
+    ((PyObject*)(op))->ob_refcnt++)
+
+#define Py_DECREF(op)                                   \
+    do {                                                \
+        if (_Py_DEC_REFTOTAL  _Py_REF_DEBUG_COMMA       \
+        --((PyObject*)(op))->ob_refcnt != 0)            \
+            _Py_CHECK_REFCNT(op)                        \
+        else                                            \
+        _Py_Dealloc((PyObject *)(op));                  \
+    } while (0)
+\end{lstlisting} 
+\end{frame}
+
+
+%------------ python object / object and type--------%
+\begin{frame}[fragile]{Python Object}
+    <type 'object'> and <type 'type'>
+    \begin{itemize}
+        \item 'object' in python is PyBaseObject\_Type indeed, not PyObject
+        \item 'object' is base class of everything, including 'type'
+        \item type of 'object' is 'type'
+    \end{itemize}
+    \begin{lstlisting}[language=C]{object.h}
+PyAPI_DATA(PyTypeObject) PyType_Type; /* built-in 'type' */
+PyAPI_DATA(PyTypeObject) PyBaseObject_Type; /* built-in 'object' */
+    \end{lstlisting} 
+\end{frame}
+
+%------------ python object / int--------%
+\begin{frame}[fragile]{Built-in Types}
+\begin{lstlisting}[language=C]{intobject.h}
+typedef struct {
+    PyObject_HEAD
+    long ob_ival;
+} PyIntObject;
+\end{lstlisting} 
+\end{frame}
+
+%------------ python object / int--------%
+\begin{frame}{Built-in Types}
+Integer
+\begin{itemize} 
+    \item cache small: [-5, 257)
+  \pause
+  \item cache block: PyIntBlock, each 82
+  \pause 
+  \item block\_list and free\_list
+  \pause 
+  \item gc: int\_dealloc
+  \pause
+  \item memory usage: largest quantity of integers at one exact time, not how many integers totally had in history
+\end{itemize}
+\end{frame}
+
+%------------ python object / string--------%
+\begin{frame}[fragile]{Built-in Types}
+\begin{lstlisting}[language=C]{intobject.h}
+typedef struct {
+    PyObject_VAR_HEAD
+    long ob_shash; // init as -1
+    int ob_sstate; //
+    char ob_sval[1]; //trick, 'cos this is not only for gnu c
+} PyStringObject;
+\end{lstlisting} 
+\end{frame}
+
+%------------ python object /string--------%
+\begin{frame}{Built-in Types}
+String
+\begin{itemize} 
+  \item not changable.
+      \begin{itemize}
+        \item the good: used as key in dict
+        \item the bad: efficiency in join
+      \end{itemize}
+  \pause
+  \item you can have \\0 in your string 
+  \pause 
+  \item block\_list and free\_list
+  \pause 
+  \item gc: int\_dealloc
+  \pause
+  \item memory usage: largest quantity of integers at one exact time, not how
+      many integers totally had in history
+    \end{itemize} 
+\end{frame}
+
+\begin{frame}{流程图}
+\tikzstyle{decision} = [diamond, draw, fill=blue!15, 
+    text width=6em, text badly centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!15, 
+    text width=5em, text centered, rounded corners, minimum height=3em]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
+    minimum height=2em]
+    
+\begin{tikzpicture}[node distance = 2cm, auto]
+    % Place nodes
+    \node [block] (init) {initialize model};
+    \node [cloud, left of=init] (expert) {expert};
+    \node [cloud, right of=init] (system) {system};
+    \node [block, below of=init] (identify) {identify candidate models};
+    \node [block, below of=identify] (evaluate) {evaluate candidate models};
+    \node [block, left of=evaluate, node distance=3cm] (update) {update model};
+    \node [decision, below of=evaluate] (decide) {is best candidate better?};
+    \node [block, right of=decide, node distance=4cm] (stop) {stop};
+    % Draw edges
+    \path [line] (init) -- (identify);
+    \path [line] (identify) -- (evaluate);
+    \path [line] (evaluate) -- (decide);
+    \path [line] (decide) -| node [near start] {yes} (update);
+    \path [line] (update) |- (identify);
+    \path [line] (decide) -- node {no}(stop);
+    \path [line,dashed] (expert) -- (init);
+    \path [line,dashed] (system) -- (init);
+    \path [line,dashed] (system) |- (evaluate);
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Splitting a slide into columns}
+
+The line you are reading goes all the way across the slide.
+From the left margin to the right margin.  Now we are going
+to split the slide into two columns.
+\bigskip
+
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+    Here is the first column.  We put an itemized list in it.
+    \begin{itemize}
+      \item This is an item
+      \item This is another item
+      \item Yet another item
+    \end{itemize}
+  \end{column}
+
+  \begin{column}{0.3\textwidth}
+    Here is the second column.  We will put a picture in it.
+   
+  \end{column}
+\end{columns}
+\bigskip
+The line you are reading goes all the way across the slide.
+From the left margin to the right margin.
+\end{frame}
+\begin{frame}[c]{} % [c] is the default
+    \begin{center}\Huge
+        Q \& A
+    \end{center}
+\end{frame} 
+\end{document}
