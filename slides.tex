@@ -159,7 +159,8 @@ PyAPI_DATA(PyTypeObject) PyBaseObject_Type; /* built-in 'object' */
        \end{center}
 \end{figure}
 \end{frame}
-%------------ python object / int--------%
+
+%------------ built-in types / int/ intobject--------%
 \begin{frame}[fragile]{Built-in Types/Ineger}
 \begin{lstlisting}[language=C]{intobject.h}
 typedef struct {
@@ -169,7 +170,7 @@ typedef struct {
 \end{lstlisting} 
 \end{frame}
 
-%------------ python object / int--------%
+%------------ built-in types / int / general--------%
 \begin{frame}{Built-in Types/Integer}
 \begin{itemize} 
     \item cache small: [-5, 257)
@@ -180,7 +181,7 @@ typedef struct {
 \end{itemize}
 \end{frame}
 
-%------------ python object / int--------%
+%------------ built-in types / int / efficiency --------%
 \begin{frame}[fragile]{Built-in Types/Integer}
 \begin{lstlisting}[language=Python]
 In [6]: %timeit float("1233")
@@ -195,40 +196,56 @@ Why?
 Let's observe int\_new(objects/intobjects.c) and float\_new(objects/floatobjects.c).
 \end{frame}
 
-%------------ python object / string--------%
+%------------ python object / string / stringobject--------%
 \begin{frame}[fragile]{Built-in Types/String}
 \begin{lstlisting}[language=C]{stringobject.h}
 typedef struct {
     PyObject_VAR_HEAD
     long ob_shash; // init as -1
-    int ob_sstate; //
+    int ob_sstate; // whether interned
     char ob_sval[1]; //trick, 'cos this is not only for gnu c
 } PyStringObject;
 \end{lstlisting} 
 \end{frame}
 
 
-%------------ python object /string--------%
-\begin{frame}{Built-in Types}
-String
+%------------ python object /string / intern--------%
+\begin{frame}{Built-in Types/String}
 \begin{itemize} 
   \item not changable.
       \begin{itemize}
         \item the good: used as key in dict
         \item the bad: efficiency in join
       \end{itemize}
-  \pause
-  \item you can have \\0 in your string 
-  \pause 
-  \item block\_list and free\_list
-  \pause 
-  \item gc: int\_dealloc
-  \pause
-  \item memory usage: largest quantity of integers at one exact time, not how
-      many integers totally had in history
+  \item you can have \textbackslash0 in your string, for size is determined by ob\_size and tp\_itemsize
+  \item PyString\_FromString PyString\_FromStringAndSize
+  \item intern
     \end{itemize} 
 \end{frame}
 
+%------------ python object / string / memory layout example--------%
+\begin{frame}[fragile]{Built-in Types/String}
+    \begin{figure}
+       \begin{center}
+       \includegraphics[width=10cm, height=3.5cm]{pystring_memory.png}
+       \end{center}
+\end{figure}
+\end{frame}
+
+%------------ python object /string--------%
+\begin{frame}{Built-in Types/String}
+intern
+\begin{itemize} 
+  \item not changable.
+      \begin{itemize}
+        \item the good: used as key in dict
+        \item the bad: efficiency in join
+      \end{itemize}
+  \item you can have \textbackslash0 in your string, for size is determined by ob\_size and tp\_itemsize
+  \item PyString\_FromString PyString\_FromStringAndSize
+  \item intern
+    \end{itemize} 
+\end{frame}
 \begin{frame}{流程图}
 \tikzstyle{decision} = [diamond, draw, fill=blue!15, 
     text width=6em, text badly centered, node distance=3cm, inner sep=0pt]
