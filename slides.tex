@@ -173,20 +173,31 @@ typedef struct {
 \begin{frame}{Built-in Types/Integer}
 \begin{itemize} 
     \item cache small: [-5, 257)
-  \pause
   \item cache block: PyIntBlock, each 82
-  \pause 
   \item block\_list and free\_list
-  \pause 
   \item gc: int\_dealloc
-  \pause
   \item memory usage: largest quantity of integers at one exact time, not how many integers totally had in history
 \end{itemize}
 \end{frame}
 
+%------------ python object / int--------%
+\begin{frame}[fragile]{Built-in Types/Integer}
+\begin{lstlisting}[language=Python]
+In [6]: %timeit float("1233")
+The slowest run took 13.29 times longer than the fastest. This could mean that an intermediate result is being cached
+1000000 loops, best of 3: 233 ns per loop
+
+In [7]: %timeit int("1233")
+The slowest run took 5.72 times longer than the fastest. This could mean that an intermediate result is being cached
+1000000 loops, best of 3: 708 ns per loop
+\end{lstlisting} 
+Why?
+Let's observe int\_new(objects/intobjects.c) and float\_new(objects/floatobjects.c).
+\end{frame}
+
 %------------ python object / string--------%
 \begin{frame}[fragile]{Built-in Types/String}
-\begin{lstlisting}[language=C]{intobject.h}
+\begin{lstlisting}[language=C]{stringobject.h}
 typedef struct {
     PyObject_VAR_HEAD
     long ob_shash; // init as -1
@@ -195,6 +206,7 @@ typedef struct {
 } PyStringObject;
 \end{lstlisting} 
 \end{frame}
+
 
 %------------ python object /string--------%
 \begin{frame}{Built-in Types}
