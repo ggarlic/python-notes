@@ -68,13 +68,9 @@
  
 \begin{itemize} 
   \item Python Object
-  \pause
   \item Built-in Types 
-  \pause 
   \item Technical lemmata 
-  \pause 
   \item Proof of the main theorem 
-  \pause 
   \item Conclusions 
 \end{itemize} 
  
@@ -141,11 +137,12 @@ typedef struct {
 
 
 %------------ python object / object and type--------%
-\begin{frame}[fragile]{Python Object}
+\begin{frame}[fragile]{Python Object/object and type}
     <type 'object'> and <type 'type'>
     \begin{itemize}
         \item 'object' in python is PyBaseObject\_Type indeed, not PyObject
         \item 'object' is base class of everything, including 'type'
+        \item type of all types is 'type'
         \item type of 'object' is 'type'
     \end{itemize}
     \begin{lstlisting}[language=C]{object.h}
@@ -154,8 +151,16 @@ PyAPI_DATA(PyTypeObject) PyBaseObject_Type; /* built-in 'object' */
     \end{lstlisting} 
 \end{frame}
 
+%------------ python object / example --------%
+\begin{frame}[fragile]{Python Object/example}
+    \begin{figure}
+       \begin{center}
+       \includegraphics[width=10cm, height=8cm]{pystring_hirechy.png}
+       \end{center}
+\end{figure}
+\end{frame}
 %------------ python object / int--------%
-\begin{frame}[fragile]{Built-in Types}
+\begin{frame}[fragile]{Built-in Types/Ineger}
 \begin{lstlisting}[language=C]{intobject.h}
 typedef struct {
     PyObject_HEAD
@@ -165,8 +170,7 @@ typedef struct {
 \end{frame}
 
 %------------ python object / int--------%
-\begin{frame}{Built-in Types}
-Integer
+\begin{frame}{Built-in Types/Integer}
 \begin{itemize} 
     \item cache small: [-5, 257)
   \pause
@@ -181,7 +185,7 @@ Integer
 \end{frame}
 
 %------------ python object / string--------%
-\begin{frame}[fragile]{Built-in Types}
+\begin{frame}[fragile]{Built-in Types/String}
 \begin{lstlisting}[language=C]{intobject.h}
 typedef struct {
     PyObject_VAR_HEAD
