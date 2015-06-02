@@ -241,14 +241,18 @@ intern
         \item by default, only cache strings consist of numbers, alphabets and underscores, but built-in intern() can be used to cache any string.
         \item internaly, use a dict <PyObject *, PyObject *> named 'interned' to store, and the two refs in interned don't count.
         \item nullstring and characters array use intern
-        \item implementation
+        \item see implementations in codeobject.c stringobject.c
 \end{itemize} 
 \end{frame}
 
-
 %------------ python object /string--------%
 \begin{frame}{Built-in Types/String}
-efficiency of "+=" and "join"
+efficiency of "+="/"+" and "join"
+\begin{itemize}
+    \item string\_join allocate memory once for all the items
+    \item += and + allocate memory everytime it executes, but optimized for short string. see BINARY\_ADD, INPLACE\_ADD, string\_concatenate in Python/ceval.c
+\end{itemize}
+PEP8: do not rely on CPython's efficient implementation of in-place string concatenation for statements in the form a += b or a = a + b . This optimization is fragile even in CPython (it only works for some types) and isn't present at all in implementations that don't use refcounting. 
 \end{frame}
 
 %------------ python object /string--------%
