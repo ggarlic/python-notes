@@ -236,16 +236,26 @@ typedef struct {
 \begin{frame}{Built-in Types/String}
 intern
 \begin{itemize} 
-  \item not changable.
-      \begin{itemize}
-        \item the good: used as key in dict
-        \item the bad: efficiency in join
-      \end{itemize}
-  \item you can have \textbackslash0 in your string, for size is determined by ob\_size and tp\_itemsize
-  \item PyString\_FromString PyString\_FromStringAndSize
-  \item intern
-    \end{itemize} 
+        \item a cache mechanism, working with hash can speed up python by 20\%
+        \item happens at compile time, not run time
+        \item by default, only cache strings consist of numbers, alphabets and underscores, but built-in intern() can be used to cache any string.
+        \item internaly, use a dict <PyObject *, PyObject *> named 'interned' to store, and the two refs in interned don't count.
+        \item nullstring and characters array use intern
+        \item implementation
+\end{itemize} 
 \end{frame}
+
+
+%------------ python object /string--------%
+\begin{frame}{Built-in Types/String}
+efficiency of "+=" and "join"
+\end{frame}
+
+%------------ python object /string--------%
+\begin{frame}{Built-in Types/String}
+stringlib in 
+\end{frame}
+
 \begin{frame}{流程图}
 \tikzstyle{decision} = [diamond, draw, fill=blue!15, 
     text width=6em, text badly centered, node distance=3cm, inner sep=0pt]
