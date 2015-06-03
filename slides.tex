@@ -69,9 +69,8 @@
 \begin{itemize} 
   \item Python Object
   \item Built-in Types 
-  \item Technical lemmata 
-  \item Proof of the main theorem 
-  \item Conclusions 
+  \item Memory Management
+  \item GC
 \end{itemize} 
  
 \end{frame} 
@@ -105,7 +104,7 @@ typedef struct {
     \item Not change size once created
     \item PyObject / PyVarObject
     \item Reference Count
-    \item Type Info
+    \item Type Info: \_teypeobject
     \item Size Info
     \item Layout
   \end{itemize}
@@ -257,6 +256,7 @@ intern
         \item by default, only cache strings consist of numbers, alphabets and underscores, but built-in intern() can be used to cache any string.
         \item internaly, use a dict <PyObject *, PyObject *> named 'interned' to store, and the two refs in interned don't count.
         \item nullstring and characters array use intern
+        \item names like "\_\_name\_\_", "\_\_doc\_\_" are interned
         \item see implementations in codeobject.c stringobject.c
 \end{itemize} 
 \end{frame}
@@ -294,8 +294,7 @@ typedef struct {
      *     len(list) == ob_size
      *     ob_item == NULL implies ob_size == allocated == 0
      * list.sort() temporarily sets allocated to -1 to detect mutations.
-     * Items must normally not be NULL, except during construction when * the list is not yet visible outside the function that builds it.
-     */
+     * Items must normally not be NULL, except during construction when * the list is not yet visible outside the function that builds it.  */
     Py_ssize_t allocated;
 } PyListObject;
 \end{lstlisting} 
@@ -305,6 +304,8 @@ typedef struct {
 \begin{frame}{Built-in Types/List}
 \begin{itemize} 
   \item ob\_size and allocated is like size and capacity of vector in c++
+  \item only one method to init: PyList\_new
+  \item cache mechanism: free\_list
 \end{itemize} 
 \end{frame}
 
