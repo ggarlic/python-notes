@@ -300,12 +300,35 @@ typedef struct {
 \end{lstlisting} 
 \end{frame}
 
-%------------ python object /string / intern--------%
+%------------ python object /list --------%
 \begin{frame}{Built-in Types/List}
 \begin{itemize} 
   \item ob\_size and allocated is like size and capacity of vector in c++
-  \item only one method to init: PyList\_new
-  \item cache mechanism: free\_list
+  \item only one method to init: PyList\_New
+  \item cache mechanism: free\_list, which hold 80 objects
+  \item list\_dealloc to return PyListObject to free\_list
+  \item memory management in list\_resize:
+    \begin{itemize} 
+        \item newsize < allocated \&\& newsize > allocated/2, no need to realloc
+        \item (0, 4, 8, 16, 25, 35, 46, 58, 72, 88)
+        \item otherwise shrink or enlarge
+    \end{itemize} 
+\end{itemize} 
+\end{frame}
+
+%------------ python object /list --------%
+\begin{frame}{Built-in Types/List}
+misc notes
+\begin{itemize} 
+    \item insert when > len(list) or < -len(list)
+    \item xrange / range
+    \item consider array
+    \item consider tuple
+        \begin{itemize} 
+            \item allocate once
+            \item cache 2000, each <20 elements
+            \item read-only, better fit for concurrency
+        \end{itemize} 
 \end{itemize} 
 \end{frame}
 
