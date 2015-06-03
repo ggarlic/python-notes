@@ -111,6 +111,22 @@ typedef struct {
   \end{itemize}
 \end{frame}
 
+%----------- python object/ pyobject -------------%
+\begin{frame}[fragile]{Python Object}
+  \begin{itemize}
+    \item inheritance 
+    \item polymorphism using PyObject
+    \item use PyObject * not PyXXObject * when communicating
+  \end{itemize}
+\begin{lstlisting}[language=C]{object.c}
+long PyObject_Hash(PyObject *v) {
+    PyTypeObject *tp = v->ob_type;
+    if (tp->tp_hash != NULL)
+        return (*tp->tp_hash)(v);
+    ......
+}
+\end{lstlisting} 
+\end{frame}
 
 %------------ python object --------%
 \begin{frame}[fragile]{Python Object}
@@ -155,7 +171,7 @@ PyAPI_DATA(PyTypeObject) PyBaseObject_Type; /* built-in 'object' */
 \begin{frame}[fragile]{Python Object/example}
     \begin{figure}
        \begin{center}
-       \includegraphics[width=10cm, height=8cm]{pystring_hirechy.png}
+       \includegraphics[width=10cm, height=8cm]{pystring_inheritance.png}
        \end{center}
 \end{figure}
 \end{frame}
@@ -250,7 +266,8 @@ intern
 efficiency of "+="/"+" and "join"
 \begin{itemize}
     \item string\_join allocate memory once for all the items
-    \item += and + allocate memory everytime it executes, but optimized for short string. see BINARY\_ADD, INPLACE\_ADD, string\_concatenate in Python/ceval.c
+    \item += and + allocate memory everytime it executes, but optimized for short string, which resize the lvalue. see BINARY\_ADD, INPLACE\_ADD, string\_concatenate in Python/ceval.c
+    \item older version of concatenate is string\_concat in Object/stringobject.c which malloc a new memory
 \end{itemize}
 PEP8: do not rely on CPython's efficient implementation of in-place string concatenation for statements in the form a += b or a = a + b . This optimization is fragile even in CPython (it only works for some types) and isn't present at all in implementations that don't use refcounting. 
 \end{frame}
@@ -262,6 +279,33 @@ stringlib fastsearch
     \item bsed on a mix between boyer-moore and horspool
     \item 'in' operation
 \end{itemize}
+\end{frame}
+
+%------------ python object / list--------%
+\begin{frame}[fragile]{Built-in Types/Integer}
+\begin{lstlisting}[language=C]{listobject.h}
+typedef struct {
+    PyObject_VAR_HEAD
+    /* Vector of pointers to list elements.  list[0] is ob_item[0], etc. */
+    PyObject **ob_item;
+    /* ob_item contains space for 'allocated' elements.  The number * currently in use is ob_size.
+     * Invariants:
+     *     0 <= ob_size <= allocated
+     *     len(list) == ob_size
+     *     ob_item == NULL implies ob_size == allocated == 0
+     * list.sort() temporarily sets allocated to -1 to detect mutations.
+     * Items must normally not be NULL, except during construction when * the list is not yet visible outside the function that builds it.
+     */
+    Py_ssize_t allocated;
+} PyListObject;
+\end{lstlisting} 
+\end{frame}
+
+%------------ python object /string / intern--------%
+\begin{frame}{Built-in Types/List}
+\begin{itemize} 
+  \item ob\_size and allocated is like size and capacity of vector in c++
+\end{itemize} 
 \end{frame}
 
 \begin{frame}{流程图}
