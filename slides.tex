@@ -282,7 +282,7 @@ stringlib fastsearch
 \end{frame}
 
 %------------ python object / list--------%
-\begin{frame}[fragile]{Built-in Types/Integer}
+\begin{frame}[fragile]{Built-in Types/List}
 \begin{lstlisting}[language=C]{listobject.h}
 typedef struct {
     PyObject_VAR_HEAD
@@ -332,64 +332,55 @@ misc notes
 \end{itemize} 
 \end{frame}
 
-\begin{frame}{流程图}
-\tikzstyle{decision} = [diamond, draw, fill=blue!15, 
-    text width=6em, text badly centered, node distance=3cm, inner sep=0pt]
-\tikzstyle{block} = [rectangle, draw, fill=blue!15, 
-    text width=5em, text centered, rounded corners, minimum height=3em]
-\tikzstyle{line} = [draw, -latex']
-\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=3cm,
-    minimum height=2em]
-    
-\begin{tikzpicture}[node distance = 2cm, auto]
-    % Place nodes
-    \node [block] (init) {initialize model};
-    \node [cloud, left of=init] (expert) {expert};
-    \node [cloud, right of=init] (system) {system};
-    \node [block, below of=init] (identify) {identify candidate models};
-    \node [block, below of=identify] (evaluate) {evaluate candidate models};
-    \node [block, left of=evaluate, node distance=3cm] (update) {update model};
-    \node [decision, below of=evaluate] (decide) {is best candidate better?};
-    \node [block, right of=decide, node distance=4cm] (stop) {stop};
-    % Draw edges
-    \path [line] (init) -- (identify);
-    \path [line] (identify) -- (evaluate);
-    \path [line] (evaluate) -- (decide);
-    \path [line] (decide) -| node [near start] {yes} (update);
-    \path [line] (update) |- (identify);
-    \path [line] (decide) -- node {no}(stop);
-    \path [line,dashed] (expert) -- (init);
-    \path [line,dashed] (system) -- (init);
-    \path [line,dashed] (system) |- (evaluate);
-\end{tikzpicture}
+%------------ python object / dict--------%
+\begin{frame}[fragile]{Built-in Types/Dict}
+\begin{lstlisting}[language=C]{dictobject.h}
+typedef struct _dictobject PyDictObject;
+struct _dictobject {
+    PyObject_HEAD
+    Py_ssize_t ma_fill;  /* # Active + # Dummy */
+    Py_ssize_t ma_used;  /* # Active */
+    Py_ssize_t ma_mask;
+    PyDictEntry *ma_table;
+    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
+    PyDictEntry ma_smalltable[PyDict_MINSIZE];
+};
+\end{lstlisting} 
 \end{frame}
 
-\begin{frame}{Splitting a slide into columns}
 
-The line you are reading goes all the way across the slide.
-From the left margin to the right margin.  Now we are going
-to split the slide into two columns.
-\bigskip
-
-\begin{columns}
-  \begin{column}{0.5\textwidth}
-    Here is the first column.  We put an itemized list in it.
-    \begin{itemize}
-      \item This is an item
-      \item This is another item
-      \item Yet another item
-    \end{itemize}
-  \end{column}
-
-  \begin{column}{0.3\textwidth}
-    Here is the second column.  We will put a picture in it.
-   
-  \end{column}
-\end{columns}
-\bigskip
-The line you are reading goes all the way across the slide.
-From the left margin to the right margin.
+%------------ python object / dict--------%
+\begin{frame}[fragile]{Built-in Types/Dict}
+\begin{lstlisting}[language=C]{dictobject.h}
+typedef struct {
+    /* Cached hash code of me_key.  Note that hash codes are C longs.
+     * We have to use Py_ssize_t instead because dict_popitem() abuses
+     * me_hash to hold a search finger.
+     */
+    Py_ssize_t me_hash;
+    PyObject *me_key;
+    PyObject *me_value;
+} PyDictEntry;
+\end{lstlisting} 
 \end{frame}
+
+%------------ python object / dict --------%
+\begin{frame}{Built-in Types/Dict}
+\begin{itemize} 
+  \item hash table with open addressing
+  \item unused/active/dummy
+  \item ma\_smalltable and ma\_table
+  \item lookdict and lookdict\_string
+  \item PyDict\_New
+  \item cache mechanism: free\_list, which hold 80 objects
+  \item memory management in dictresize:
+    \begin{itemize} 
+        \item if fill > 2/3 size, adjust size.
+        \item size * 2 or size * 4
+    \end{itemize} 
+\end{itemize} 
+\end{frame}
+
 \begin{frame}[c]{} % [c] is the default
     \begin{center}\Huge
         Q \& A
