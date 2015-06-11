@@ -69,8 +69,9 @@
 \begin{itemize} 
   \item Python Object
   \item Built-in Types 
-  \item Memory Management
-  \item Reference and GC
+  \item Memory Management [TODO]
+  \item Reference Count and GC [TODO]
+  \item ENV: Python in this slides means CPython2.7.6
 \end{itemize} 
  
 \end{frame} 
@@ -176,7 +177,7 @@ PyAPI_DATA(PyTypeObject) PyBaseObject_Type; /* built-in 'object' */
 \end{frame}
 
 %------------ built-in types / int/ intobject--------%
-\begin{frame}[fragile]{Built-in Types/Ineger}
+\begin{frame}[fragile]{Built-in Types/Integer}
 \begin{lstlisting}[language=C]{intobject.h}
 typedef struct {
     PyObject_HEAD
@@ -322,6 +323,7 @@ misc notes
 \begin{itemize} 
     \item insert when > len(list) or < -len(list)
     \item xrange / range
+    \item tim sort
     \item consider array
     \item consider tuple
         \begin{itemize} 
@@ -379,6 +381,84 @@ typedef struct {
         \item size * 2 or size * 4
     \end{itemize} 
 \end{itemize} 
+\end{frame}
+
+%------------ mem --------%
+\begin{frame}{Memory Allocators}
+    \begin{figure}
+       \begin{center}
+           \includegraphics[width=10cm, height=5cm]{memory_allocators.png}
+       \end{center}
+\end{figure}
+\end{frame}
+
+%------------ mem -------%
+\begin{frame}{Memory Allocators}
+\begin{itemize} 
+  \item Layer 0 is OS's allocators
+  \item Layer 1 is just a simple wrapper of Layer 0, in forms of both macro and funtion
+  \item Layer 2 is the core mechanism--pymalloc. PyObject\_\{Malloc,Realloc,Free\}
+  \item Layer 3 is type specific memory cache
+\end{itemize} 
+\end{frame}
+
+%------------ refcnt and gc --------%
+\begin{frame}{pymalloc}
+\begin{itemize} 
+  \item block: works for <256B, when >256B, use Layer 1. block must be 8B alignment.
+  \item pool: same as mem page size(4KB), manage blocks of same size
+  \item arena: has 64 pools.
+  \item usedpools: array of head pointers of USED pool
+\end{itemize} 
+\end{frame}
+
+\begin{frame}{Mark-Sweep Garbage Collection}
+\begin{itemize} 
+  \item break unreachable reference cycles
+  \item doesn't explicity deallocate any objects, just breaks cycles
+  \item automaticlly run by interpreter every once in a while. sys.getcheckinterval()
+  \item auto gc object without \_\_del\_\_
+  \item stop the world to gc
+  \item expensive, cost is linear to number of references of vector in program.
+\end{itemize} 
+\end{frame}
+
+\begin{frame}{Generational GC}
+\begin{itemize}
+  \item most objects live either for a very short time or for a very long time
+  \item divide object into 3 generations(0, 1, 2)
+  \item each new object is generation 0.
+  \item n-th gen. gc analyses objects of gen. 0-n
+  \item any object that survived n-th gen. gc is promoted to n+1-th gen.
+  \item (700, 10, 10) 700 is alloc - dealloc, 10s are times of prior gen gc.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Memory Leak}
+\begin{itemize}
+  \item leak in modules written in c/c++
+  \item integers and floats
+  \item gc won't collect any objects in cycles where at least one object has \_\_del\_\_
+  \item hidding references
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Memory Leak}
+Hidding References
+\begin{itemize}
+  \item closures, functools.partial, etc
+  \item sys.exc\_traceback keeps last exception handled in this stack frame including the whole stack state when exception occurs.
+  \item sys.last\_traceback keeps unhandled excption including whole stack state
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What to do}
+\begin{itemize}
+    \item use context manager("with") instead of \_\_del\_\_
+    \item use weakref
+    \item if you really need \_\_del\_\_, be careful of ref cycle
+    \item tools: pdb/objgraph/guppy/heapy/memory\_profiler/line\_profiler/gc.collect()
+\end{itemize}
 \end{frame}
 
 \begin{frame}[c]{} % [c] is the default
