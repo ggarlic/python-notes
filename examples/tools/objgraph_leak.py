@@ -14,4 +14,6 @@ for i in xrange(10):
     B.a = A
     A = None
     B = None
+    print "============"
     objgraph.show_growth()
+    print "============"
